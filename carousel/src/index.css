@@ -1,0 +1,45 @@
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+}
+
+#container {
+  position: relative;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+#carousel {
+  display: flex;
+
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  --currentSlide: 1;
+  --duration: 0;
+
+  transition: transform calc(var(--duration) * 1ms) ease-in-out;
+  transform: translateX(calc(var(--currentSlide) * -100%));
+}
+
+.carousel-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: transparent;
+  color: white;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  font-size: 3rem;
+}
+
+.carousel-button.next {
+  right: 0;
+}
+
+#overflow:checked ~ #container {
+  overflow: hidden;
+}
