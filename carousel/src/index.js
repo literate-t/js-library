@@ -156,6 +156,5 @@ carousel(
   document.getElementById('container'),
   [b1, b2, b3, b4],
   'Event',
-  true,
-  3000
+  false
 );
