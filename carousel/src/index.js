@@ -4,14 +4,18 @@ import b2 from '/public/images/2.jpg';
 import b3 from '/public/images/3.jpg';
 import b4 from '/public/images/4.jpg';
 
-const carousel = ($container, images, title) => {
+const carousel = ($container, images, title, isAutoPlay, playTime = 3000) => {
   const $header = document.querySelector('.header');
   const $carousel = document.getElementById('carousel');
   const $nextButton = document.querySelector('.carousel-button.next');
   const $prevButton = document.querySelector('.carousel-button.prev');
+
   let $dotLi = null;
+  let timerId = null;
 
   const DURATION = 500;
+  const NEXT = 1;
+  const PREV = -1;
 
   let currentSlide = 0;
 
@@ -36,7 +40,15 @@ const carousel = ($container, images, title) => {
     }
   };
 
-  const handleHeaderClick = ({ target }) => {
+  const handleHeaderClick = (event) => {
+    if (isAutoPlay) {
+      return;
+    }
+
+    event.stopPropagation();
+
+    const { target } = event;
+
     if (!target.dataset.id) {
       return;
     }
@@ -45,9 +57,9 @@ const carousel = ($container, images, title) => {
     target.classList.add('active');
 
     const { id } = target.dataset;
-    currentSlide = id;
+    currentSlide = +id;
 
-    move(id, DURATION);
+    move(currentSlide, DURATION);
   };
 
   $header.addEventListener('click', handleHeaderClick);
@@ -69,11 +81,20 @@ const carousel = ($container, images, title) => {
     getDotLiElement();
   });
 
+  const autoPlay = () => {
+    setMove(NEXT, DURATION);
+    timerId = setTimeout(autoPlay, playTime);
+  };
+
   window.onload = () => {
     const { offsetWidth } = $carousel.querySelector('img');
     $container.style.width = `${offsetWidth}px`;
 
     move(++currentSlide);
+
+    if (isAutoPlay) {
+      setTimeout(autoPlay, playTime);
+    }
   };
 
   const move = (current, duration = 0) => {
@@ -81,20 +102,39 @@ const carousel = ($container, images, title) => {
     $carousel.style.setProperty('--duration', duration);
   };
 
-  const handleNextButton = () => {
-    move(++currentSlide, DURATION);
-
-    removeActiveFromDots();
-    const index = currentSlide < 5 ? currentSlide : 1;
+  const addActiveClassToDot = (index) => {
     $dotLi[index - 1].classList.add('active');
   };
 
-  const handlePrevButton = () => {
-    move(--currentSlide, DURATION);
+  const getActiveClassIndex = (flag) => {
+    // next
+    if (flag === 1) {
+      return currentSlide < images.length + 1 ? currentSlide : 1;
+    }
+
+    return 0 < currentSlide ? currentSlide : images.length;
+  };
+
+  const setMove = (step, duration = 0) => {
+    currentSlide = currentSlide + step;
+    console.log({ currentSlide });
+
+    move(currentSlide, duration);
 
     removeActiveFromDots();
-    const index = 0 < currentSlide ? currentSlide : 4;
-    $dotLi[index - 1].classList.add('active');
+
+    const index = getActiveClassIndex(step);
+    addActiveClassToDot(index);
+  };
+
+  const handleButton = ({ target }) => {
+    if (!target.classList.contains('carousel-button') || isAutoPlay) {
+      return;
+    }
+
+    const step = target.classList.contains('next') ? NEXT : PREV;
+
+    setMove(step, DURATION);
   };
 
   const handleTransitionEnd = () => {
@@ -109,9 +149,13 @@ const carousel = ($container, images, title) => {
 
   $carousel.addEventListener('transitionend', handleTransitionEnd);
 
-  $nextButton.addEventListener('click', handleNextButton);
-
-  $prevButton.addEventListener('click', handlePrevButton);
+  $container.addEventListener('click', handleButton);
 };
 
-carousel(document.getElementById('container'), [b1, b2, b3, b4], 'Event');
+carousel(
+  document.getElementById('container'),
+  [b1, b2, b3, b4],
+  'Event',
+  true,
+  3000
+);
